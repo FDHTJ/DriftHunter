@@ -3,10 +3,10 @@ import json
 import tqdm
 import os
 
-#模型下载
 from modelscope import snapshot_download
+#Download the model
 model_dir = snapshot_download('deepseek-ai/DeepSeek-R1-Distill-Llama-8B',cache_dir="deepseek-r1")
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # 让程序只看到卡1和卡2
+os.environ["CUDA_VISIBLE_DEVICES"] = "0" 
 
 
 
@@ -14,7 +14,6 @@ from transformers import pipeline, AutoTokenizer
 import torch
 model_id = "deepseek-r1/deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
 
-# 创建一个多 GPU 的 text-generation pipeline
 generator = pipeline(
     "text-generation",
     model=model_id,
@@ -34,7 +33,6 @@ def get_result(prompt: str) -> str:
     del out
     gc.collect()
     torch.cuda.empty_cache()
-    # pipeline 会返回 list of dicts，取第一个的 generated_text
     return res
 prompt_template='''
 Previous utterance:

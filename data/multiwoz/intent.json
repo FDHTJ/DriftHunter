@@ -1,1 +1,14 @@
-
+[
+    "UNK",
+    "find_restaurant",
+    "find_hotel",
+    "book_restaurant",
+    "find_attraction",
+    "book_hotel",
+    "find_train",
+    "book_train",
+    "find_taxi",
+    "find_hospital",
+    "find_police",
+    "find_bus"
+]

@@ -6,32 +6,22 @@ import numpy as np
 import torch
 import tqdm
 import pickle
-# import utills_without_g as utills
-# import utills
-import utills_for_parameter as utills
-# import utills_for_alpha as utills
+import utills
 def set_seed(seed=42):
-    # Python 随机数种子
     random.seed(seed)
 
-    # NumPy 随机数种子
     np.random.seed(seed)
 
-    # PyTorch 随机数种子（CPU和GPU）
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)  # 多GPU情况
+        torch.cuda.manual_seed_all(seed)  
 
-    # 固定 CuDNN 行为（可能牺牲性能）
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-    # 设置环境变量（可选）
-    # os.environ['PYTHONHASHSEED'] = str(seed)
 
 
-# 使用示例
 set_seed(42)
 def get_sentence_embeddings_per_batch(sentence_embeddings, index, p_u):
     res=None
@@ -78,7 +68,6 @@ def train_epoch(model, train_loader, loss_intent_shift,loss_intent,loss_slots, o
                 all_logits.append(slots_logits[i][j])  # shape: [slot_dim]
                 all_labels.append(slots_true_label[i][j])  # scalar
 
-        # 转成 tensor
         all_logits = torch.stack(all_logits, dim=0).to(slots_logits.device)  # shape: [N, slot_dim]
         all_labels = torch.tensor(all_labels).to(slots_logits.device)
         l = (
@@ -144,7 +133,6 @@ def eval(model, train_loader,loss_intent_shift, loss_intent, loss_slots, p_u, da
                 all_logits.append(slots_logits[i][j])  # shape: [slot_dim]
                 all_labels.append(slots_true_label[i][j])  # scalar
 
-        # 转成 tensor
         all_logits = torch.stack(all_logits, dim=0).to(slots_logits.device)  # shape: [N, slot_dim]
         all_labels = torch.tensor(all_labels).to(slots_logits.device)
         l = (
@@ -187,20 +175,10 @@ def train(model, train_loader, test_loader, optimizer, epoch, loss_intent_shift,
         # utills.get_metrics_intent(ti_train, pi_train,True,file)
         # utills.get_metrics_slots(ts_train,ps_train,True,file)
         print("test loss:", l_test)
-        if utills.get_metrics_intent_drift(tis_test,pis_test,False,file,i,l):
+        if utills.get_metrics_intent_drift(tis_test,pis_test,False,file,i):
             pass
-        #     pass
-            # after_metrix = model.tta.transition_matrix.cpu().tolist().copy()
-            # after_last_result = model.tta.last_result.cpu().tolist().copy()
-            # after=model.state_dict()
-            # torch.save(before, "model_state_before_distance.pth")
-            # with open("before_information_distance.json",'w',encoding='utf-8') as f:
-            #     json.dump({"metrix":before_metrix,"last_result":before_last_result},f)
-            # torch.save(after, "model_state_after_distance.pth")
-            # with open("after_information_distance.json",'w',encoding='utf-8') as f:
-            #     json.dump({"metrix":after_metrix,"last_result":after_last_result},f)
-        utills.get_metrics_intent(ti_test, pi_test, False,file,i,l)
-        utills.get_metrics_slots(ts_test, ps_test, False,file,i,l)
+        utills.get_metrics_intent(ti_test, pi_test, False,file,i)
+        utills.get_metrics_slots(ts_test, ps_test, False,file,i)
 def get_statistic_information(data_source):
     train_data=json.load(open(os.path.join(data_source, "train.json"), "r",encoding="utf-8"))
     intents=json.load(open(os.path.join(data_source, "intent.json"),'r',encoding='utf-8'))
@@ -237,63 +215,29 @@ if __name__ == '__main__':
     is_lack=False
     max_len=128
     intent_shift_size=1
-    p_u = 32  ##0
-    for data_source in ["multiwoz"]:#[,,]
-        intent_size=len(json.load(open(os.path.join(data_source, "intent.json"),'r',encoding='utf-8')))
-        slots_size=len(json.load(open(os.path.join(data_source, "slots.json"),'r',encoding='utf-8')))
-        for method in ["AAAI"]:#[]
-            for l in np.arange(0.4, 1.1, 0.1):#[0.2]:
-                print("当前数据集为：",data_source)
-                print("当前方法为：",method)
-                if method=="BERT":
-                    from bert import BertWithTTA
-                    model = BertWithTTA(intent_shift_size, intent_size, slots_size, max_len, model_name,p_u)
-                    h=(0.05,0.15,0.8)
-                elif method=="AAAI":
-                    from model_complex import AdaptiveGlobalLocalContextFusionModelWithTTA
-                    model = AdaptiveGlobalLocalContextFusionModelWithTTA(intent_shift_size, intent_size, slots_size, max_len,p_u,l)
-                    h=(0.05,0.25,0.7)
-                    print("当前配比为：",h)
-                else:
-                    intent_size =  len(json.load(open(os.path.join(data_source, "intent.json"),'r',encoding='utf-8')))
-                    slots_size = len(json.load(open(os.path.join(data_source, "slots.json"), 'r', encoding='utf-8')))
-                    from DanceWithLabels import DanceWithLabelsWithTTA
-                    model=DanceWithLabelsWithTTA(intent_shift_size,intent_size, slots_size, max_len, p_u)
-                    statistic_result = get_statistic_information(data_source).softmax(dim=-1)
-                    model.DH_LGIL_intent.transition_matrix=statistic_result
-                    model.DH_LGIL_slots.transition_matrix=statistic_result
-                    h=(0.05,0.35,0.6)
-                print("current_method:",method)
-                from torch.optim import AdamW
-                optimizer=AdamW(model.parameters(), lr=1e-5)
-                from torch.utils.data import DataLoader
-                from dataloader import  MyDataset
-                from transformers import BertTokenizer
-                tokenizer = BertTokenizer.from_pretrained(f"../tokenizers/{model_name}")
-                train_iter=DataLoader(dataset=MyDataset(tokenizer,max_len,data_source,True,is_lack,False),batch_size=32,shuffle=False)
-                test_iter=DataLoader(dataset=MyDataset(tokenizer,max_len,data_source,False,is_lack,False),batch_size=32,shuffle=False)
-                loss_intent_shift=torch.nn.BCEWithLogitsLoss()
-                loss_intent=torch.nn.CrossEntropyLoss(label_smoothing=0.1)
-                loss_slots=torch.nn.CrossEntropyLoss(label_smoothing=0.1)
-                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-                model.to(device)
-                file = os.path.join("results", method, f"{data_source}")
-                train(model,train_iter,test_iter,optimizer,50,loss_intent_shift,loss_intent, loss_slots, p_u, data_source, is_lack,file,h,l)
-
-            #
-            # from bert import BertWithTTA
-            # method="BERT"
-            # with_TTA=True
-            # model=BertWithTTA(intent_shift_size,intent_shift_size, slots_size, max_len, model_name,p_u)
-
-            # from model_complex import AdaptiveGlobalLocalContextFusionModel
-            # model=AdaptiveGlobalLocalContextFusionModel(intent_shift_size,intent_size, slots_size, max_len, p_u)
-
-            # from DanceWithLabels import DanceWithLabels
-            # model=DanceWithLabels(intent_shift_size,intent_size, slots_size, max_len, p_u)
-            # statistic_result = get_statistic_information(data_source).softmax(dim=-1)
-            # model.DH_LGIL_intent.transition_matrix=statistic_result
-            # model.DH_LGIL_slots.transition_matrix=statistic_result
-
-            # from DanceWithLabels import DanceWithLabelsWithTTA
-            # model=DanceWithLabelsWithTTA(intent_shift_size,intent_size, slots_size, max_len, p_u)
+    p_u = 32
+    l=0.2
+    for data_source in ["multiwoz"]:
+        intent_size=len(json.load(open(os.path.join("../data",data_source, "intent.json"),'r',encoding='utf-8')))
+        slots_size=len(json.load(open(os.path.join("../data",data_source, "slots.json"),'r',encoding='utf-8')))
+        from AGLCF-TTA import AdaptiveGlobalLocalContextFusionModelWithTTA
+        model = AdaptiveGlobalLocalContextFusionModelWithTTA(intent_shift_size, intent_size, slots_size, max_len,p_u,l)
+        h=(0.05,0.25,0.7)
+        print("current_method:",method)
+        from torch.optim import AdamW
+        optimizer=AdamW(model.parameters(), lr=1e-5)
+        from torch.utils.data import DataLoader
+        from dataloader import  MyDataset
+        from transformers import BertTokenizer
+        tokenizer = BertTokenizer.from_pretrained(f"../tokenizers/{model_name}")
+        train_iter=DataLoader(dataset=MyDataset(tokenizer,max_len,"../data"+data_source,True,is_lack,False),batch_size=32,shuffle=False)
+        test_iter=DataLoader(dataset=MyDataset(tokenizer,max_len,"../data"+data_source,False,is_lack,False),batch_size=32,shuffle=False)
+        loss_intent_shift=torch.nn.BCEWithLogitsLoss()
+        loss_intent=torch.nn.CrossEntropyLoss(label_smoothing=0.1)
+        loss_slots=torch.nn.CrossEntropyLoss(label_smoothing=0.1)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model.to(device)
+        file = os.path.join("results", method, f"{data_source}")
+        train(model,train_iter,test_iter,optimizer,50,loss_intent_shift,loss_intent, loss_slots, p_u, data_source, is_lack,file,h,l)
+                
+                

@@ -196,12 +196,11 @@ if __name__ == '__main__':
     is_lack=False
     max_len=128
     intent_shift_size=1
-    p_u = 0  ##0
+    p_u = 32
     for data_source in ["sim","atis","multiwoz"]:
-        intent_size=1#len(json.load(open(os.path.join(data_source, "intent.json"),'r',encoding='utf-8')))
+        intent_size=len(json.load(open(os.path.join(data_source, "intent.json"),'r',encoding='utf-8')))
         slots_size=len(json.load(open(os.path.join(data_source, "slots.json"),'r',encoding='utf-8')))
-        for method in ["ACM","AAAI","BERT"]:
-            if method=="BERT":
+        if method=="BERT":
                 from bert import Bert
                 model = Bert(intent_shift_size, intent_size, slots_size, max_len, model_name)
             elif method=="AAAI":
@@ -233,21 +232,3 @@ if __name__ == '__main__':
             model.to(device)
             file = os.path.join("results", method, f"{data_source}")
             train(model,train_iter,test_iter,optimizer,100,loss_intent_shift,loss_intent, loss_slots, p_u, data_source, is_lack,file)
-
-            #
-            # from bert import BertWithTTA
-            # method="BERT"
-            # with_TTA=True
-            # model=BertWithTTA(intent_shift_size,intent_shift_size, slots_size, max_len, model_name,p_u)
-
-            # from model_complex import AdaptiveGlobalLocalContextFusionModel
-            # model=AdaptiveGlobalLocalContextFusionModel(intent_shift_size,intent_size, slots_size, max_len, p_u)
-
-            # from DanceWithLabels import DanceWithLabels
-            # model=DanceWithLabels(intent_shift_size,intent_size, slots_size, max_len, p_u)
-            # statistic_result = get_statistic_information(data_source).softmax(dim=-1)
-            # model.DH_LGIL_intent.transition_matrix=statistic_result
-            # model.DH_LGIL_slots.transition_matrix=statistic_result
-
-            # from DanceWithLabels import DanceWithLabelsWithTTA
-            # model=DanceWithLabelsWithTTA(intent_shift_size,intent_size, slots_size, max_len, p_u)

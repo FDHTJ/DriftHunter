@@ -123,20 +123,12 @@ class  AdaptiveGlobalLocalContextFusionModelWithTTA(nn.Module):
         self.intent_bi_lstm=nn.LSTM(input_size=(d_self+d_ref_bert),hidden_size=hidden_size,bidirectional=True)
         self.slots_bi_lstm=nn.LSTM(input_size=(d_self+d_ref_bert),hidden_size=hidden_size,bidirectional=True)
         self.final_decoder=FinalDecoder(hidden_size*2,hidden_size*2,max_len,intent_shift_size,intent_size,slots_size)
-        print("l为:",l)
         self.tta=TTA(hidden_size*2, d_ref_bert,intent_size, slots_size,l)
-        # if without_g:
-        #     from TTA_without_T import TTA
-        #     self.tta = TTA(hidden_size*2, d_ref_bert,intent_size, slots_size )
-        # else:
-        #     from TTA_without_G import TTA
-        #     self.tta = TTA(hidden_size * 2, d_ref_bert, intent_size, slots_size)
     def forward(self,d,u):
         p=self.bert(d["text"],d["attention_masks"]).last_hidden_state
         p_context=self.globalLocal_multi_head_attention(p,u)
         intent_embedding, (_, _) = self.intent_bi_lstm(p_context)
         slot_embedding, (_, _) = self.slots_bi_lstm(p_context)
-        # print("tta is using")
         intent_embedding,slot_embedding=self.tta(intent_embedding,slot_embedding,u)
         intent_shift_result,intent_result, slots_result=self.final_decoder(intent_embedding,slot_embedding)
         return intent_shift_result,intent_result,slots_result#,metrixs

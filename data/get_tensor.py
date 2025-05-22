@@ -6,8 +6,6 @@ from torch.utils.data import Dataset, DataLoader
 import tqdm
 import sklearn.metrics as sm
 import pickle
-intent=[1,2,3]
-print(intent.index(3))
 device=torch.device('cuda:0')
 tokenizer_1=BertTokenizer.from_pretrained('../tokenizers/bert-base-uncased')
 model_1=AutoModel.from_pretrained('../model/pretrained_models/bert-base-uncased')

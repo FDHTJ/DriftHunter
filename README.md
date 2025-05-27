@@ -11,6 +11,8 @@ Because the processed Multiwoz is too large to upload, so we only keep the proce
 
 But we provide the code to process the data in /data/process_data.py, before you try  to get the processed data, merge all the dialogues in the orignal dataset is recommended.
 
+The details of data process is represented in the /data/README.md.
+
 The hyperparemeters of α, β, and γ are as follows：
 
 Table: Hyperparameter on ATIS：

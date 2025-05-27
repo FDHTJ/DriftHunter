@@ -1,5 +1,5 @@
 # Intent Drift Detection in Continuous Conversation via Temporal Transition Accumulating(TTA)
-The hyperparemeters are as follows：
+The hyperparemeters of α, β, and γ are as follows：
 
 Table: Hyperparameter on ATIS：
 | Method             | α    | β    | γ    |

@@ -69,19 +69,16 @@ class TTA(nn.Module):
     def update(self,curr):
         curr=curr.mean(dim=0)
         similarity_matrix = F.cosine_similarity(
-            self.last_result.unsqueeze(1).to(curr.device),  # 形状变为 (8, 1, 768)
-            curr.unsqueeze(0),  # 形状变为 (1, 8, 768)
-            dim=-1  # 在最后一个维度（768）计算相似度
+            self.last_result.unsqueeze(1).to(curr.device),
+            curr.unsqueeze(0),
+            dim=-1
         )
 
-        # noise = torch.randn_like(similarity_matrix) * 0.1
-        # similarity_matrix += noise
-        # logits = similarity_matrix  # 任意形状 (batch, N)
-        # similarity_matrix = entmax15(similarity_matrix, dim=-1)  # 或 entmax15
+
         similarity_matrix=similarity_matrix.softmax(dim=-1)
         l=self.l
         self.transition_matrix=l*self.transition_matrix.to(curr.device)+similarity_matrix.detach()*(1-l)
-        self.last_result=curr.detach()#0.5*self.last_result.to(curr.device)+ 0.5*
+        self.last_result=curr.detach()
     def forward(self,intent_embedding,slots_embedding,u):
         intent_original,slots_original=intent_embedding,slots_embedding
         joint_embedding_original=torch.cat((intent_original,slots_original),dim=-1)

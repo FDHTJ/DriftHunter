@@ -51,7 +51,10 @@ Decision: Output one of the following:
 [Yes, they have different intents./No, they have the same intent.]
 
 '''
-for data_source in ["atis","sim","multiwoz"]:
+for data_source in ["sim"]:
+    if not os.path.exists(f"deepseek_r1_8B_{data_source}_test.jsonl"):
+        with open(f"deepseek_r1_8B_{data_source}_test.jsonl", 'w', encoding="utf-8") as f:
+            pass
     with open(f"deepseek_r1_8B_{data_source}_test.jsonl",'r',encoding="utf-8") as f:
         l=len(f.readlines())
     with open(f"../{data_source}/test.json",'r',encoding='utf-8') as f:

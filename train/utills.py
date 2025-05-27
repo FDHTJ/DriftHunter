@@ -16,10 +16,10 @@ def save_result(file,current_result,epoch):
 def get_metrics_intent_drift(true_label,pred,is_train,folder,epoch):
     if is_train:
         print("intent drift"
-              "训练集：")
+              "train set：")
     else:
         print("intent drift"
-              "测试集：")
+              "test set：")
     metrics_dict = {
         "Accuracy": sm.accuracy_score(true_label, pred),
         "Precision": sm.precision_score(true_label, pred),
@@ -31,45 +31,45 @@ def get_metrics_intent_drift(true_label,pred,is_train,folder,epoch):
     print("Recall :", sm.recall_score(true_label, pred))
     print("F1 :", sm.f1_score(true_label, pred))
     if not is_train:
-        file=os.path.join(folder,"intent_drift_original_tta.json")
+        file=os.path.join(folder,"intent_drift_with_tta.json")
         save_result(file,metrics_dict,epoch)
 def get_metrics_slots(true_label,pred,is_train,folder,epoch):
     if is_train:
         print("slots"
-              "训练集：")
+              "train set：")
     else:
         print("slots"
-              "测试集：")
+              "test set：")
     metrics_dict = {
         "Accuracy": sm.accuracy_score(true_label, pred),
-        "Precision": sm.precision_score(true_label, pred,average='macro',zero_division=1),
-        "Recall": sm.recall_score(true_label, pred,average='macro',zero_division=1),
-        "F1": sm.f1_score(true_label, pred,average='macro',zero_division=1)
+        "Precision": sm.precision_score(true_label, pred,average='macro',zero_division=0),
+        "Recall": sm.recall_score(true_label, pred,average='macro',zero_division=0),
+        "F1": sm.f1_score(true_label, pred,average='macro',zero_division=0)
     }
     print("Accuracy :", sm.accuracy_score(true_label, pred))
-    print("Precision :", sm.precision_score(true_label, pred,average='macro',zero_division=1))
-    print("Recall :", sm.recall_score(true_label, pred,average='macro',zero_division=1))
-    print("F1 :", sm.f1_score(true_label, pred,average='macro',zero_division=1))
+    print("Precision :", sm.precision_score(true_label, pred,average='macro',zero_division=0))
+    print("Recall :", sm.recall_score(true_label, pred,average='macro',zero_division=0))
+    print("F1 :", sm.f1_score(true_label, pred,average='macro',zero_division=0))
     if not is_train:
-        file=os.path.join(folder,"slots_original_tta.json")
+        file=os.path.join(folder,"slots_with_tta.json")
         save_result(file,metrics_dict,epoch)
 def get_metrics_intent(true_label,pred,is_train,folder,epoch):
     if is_train:
         print("intent"
-              "训练集：")
+              "train set：")
     else:
         print("intent"
-              "测试集：")
+              "test set：")
     metrics_dict = {
         "Accuracy": sm.accuracy_score(true_label, pred),
-        "Precision": sm.precision_score(true_label, pred, average='macro',zero_division=1),
-        "Recall": sm.recall_score(true_label, pred, average='macro',zero_division=1),
-        "F1": sm.f1_score(true_label, pred, average='macro',zero_division=1)
+        "Precision": sm.precision_score(true_label, pred, average='macro',zero_division=0),
+        "Recall": sm.recall_score(true_label, pred, average='macro',zero_division=0),
+        "F1": sm.f1_score(true_label, pred, average='macro',zero_division=0)
     }
     print("Accuracy :", sm.accuracy_score(true_label, pred))
-    print("Precision :", sm.precision_score(true_label, pred,average='macro',zero_division=1))
-    print("Recall :", sm.recall_score(true_label, pred,average='macro',zero_division=1))
-    print("F1 :", sm.f1_score(true_label, pred,average='macro',zero_division=1))
+    print("Precision :", sm.precision_score(true_label, pred,average='macro',zero_division=0))
+    print("Recall :", sm.recall_score(true_label, pred,average='macro',zero_division=0))
+    print("F1 :", sm.f1_score(true_label, pred,average='macro',zero_division=0))
     if not is_train:
-        file=os.path.join(folder,"intent_original_tta.json")
+        file=os.path.join(folder,"intent_with_tta.json")
         save_result(file,metrics_dict,epoch)

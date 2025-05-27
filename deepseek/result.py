@@ -18,28 +18,7 @@ def get_result(respond:str):
     elif respond.find("no") !=-1:
         return 0
     else:return -1
-def get_pred():
-    with open("../multiwoz/test_original.json","r",encoding="utf-8") as f:
-        data=json.load(f)
-    with open("deepseek_r1_8B_multiwoz_test.jsonl", 'r',encoding='utf-8') as f:
-        all_lines = f.readlines()
-        all_processed_data = []
-        index=0
-        for line in all_lines:
-            d = json.loads(line)
-            if d['speaker']=="system":
-                all_processed_data.append(d)
-                index+=1
-                continue
-            else:
-                d["pred_intent_drift"]=get_result(d["res_deepseek"])
-                d["start"]=data[index]["start"]
-                all_processed_data.append(d)
-            index+=1
-        with open("deepseek_r1_8B_multiwoz_test_orignal.json", 'w',encoding='utf-8') as f:
-            json.dump(all_processed_data,f,ensure_ascii=False)
-get_pred()
-with open("deepseek_r1_8B_multiwoz_test_orignal.json", 'r',encoding='utf-8') as f:
+with open("deepseek_r1_8B_sim_test.json", 'r',encoding='utf-8') as f:
     data = json.load(f)
     pred=[]
     true=[]

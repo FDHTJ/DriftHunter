@@ -1,15 +1,6 @@
 import json
-import random
 import os
-# with open("../data/simulated-dialogue-master/sim-R/test_raw.json",'r',encoding='utf-8') as f:
-#
-#     data1 = json.load(f)
-#     with open("../data/simulated-dialogue-master/sim-M/test_raw.json",'r',encoding='utf-8') as f2:
-#         data2 = json.load(f2)
-#         data=data1+data2
-#         random.shuffle(data)
-#         with open("sim/test_raw.json",'w',encoding='utf-8') as f:
-#             json.dump(data,f,ensure_ascii=False,indent=4)
+
 
 def get_slots_labels(text,slots_value):
     labels=['O']*len(text)
@@ -201,36 +192,13 @@ def get_intent_shift_label_and_position_number(input_file, output_file):
             index+=1
         with open(output_file, 'w',encoding='utf-8') as f:
             json.dump(data,f,indent=4,ensure_ascii=False)
-def get_lack_information(input_file, output_file):
-    with open(input_file, 'r',encoding='utf-8') as f:
-        data=json.load(f)
-        pre_intent="UNK"
-        for d in data:
-            if d["speaker"] =="system":
-                continue
-            if pre_intent !=d["intent"]:
-                pre_intent=d["intent"]
-                continue
-            if d["slots_labels"]==['O']*len(d["text"]):
-                continue
-            new_text=[]
-            new_labels=[]
-            for i in range(len(d["text"])):
-                if d["slots_labels"][i]!="O":
-                    new_text.append(d["text"][i])
-                    new_labels.append(d["slots_labels"][i])
-            d["text"]=new_text
-            d["slots_labels"]=new_labels
-        with open(output_file, 'w',encoding='utf-8') as f:
-            json.dump(data,f,indent=4,ensure_ascii=False)
 if __name__ == '__main__':
-    # process_data_sim("sim","test_raw.json","test.json")
-    # print(split_text("Hello, I need some French food. Any price range is fine."))
-    # process_data_atis("atis","test_raw.json","test.json")
-    process_data_multiwoz("multiwoz","test_raw.json","test_original.json")
-    process_data_multiwoz("multiwoz","train_raw.json","train_original.json")
-    # get_intent_shift_label_and_position_number("atis/test.json","atis/test.json")
-    get_intent_shift_label_and_position_number("multiwoz/test_original.json","multiwoz/test_original.json")
-    get_intent_shift_label_and_position_number("multiwoz/train_original.json","multiwoz/train_original.json")
-    # get_lack_information("atis/test.json","atis/test_lack.json")
-    # get_lack_information("multiwoz/test.json","multiwoz/test_lack.json")
+    #Here is a example processing the sim dataset
+    #The "sim" is the folder of your data and
+    #the "test/train_raw.json" is the all the dialogues you have merged from the original dataset.
+    #You can see the "test/train_raw.json" file to further understand it.
+    #Run the code below, and you can obtain all the intents (intent.json) and all the slots (slots.json)
+    process_data_sim("sim","test_raw.json","test.json")
+    process_data_sim("sim","train_raw.json","train.json")
+    get_intent_shift_label_and_position_number("sim/test.json","sim/test.json")
+    get_intent_shift_label_and_position_number("sim/train.json","sim/train.json")

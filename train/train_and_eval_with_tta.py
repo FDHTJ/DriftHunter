@@ -34,14 +34,14 @@ def get_sentence_embeddings_per_batch(sentence_embeddings, index, p_u):
     return res
 
 
-def train_epoch(model, train_loader, loss_intent_shift,loss_intent,loss_slots, optimizer, p_u,data_source,is_lack,h):
+def train_epoch(model, train_loader, loss_intent_shift,loss_intent,loss_slots, optimizer, p_u,data_source,h):
     model.train()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     all_true_intent, all_pred_intent = [], []
     all_true_slots, all_pred_slots = [], []
     all_true_intent_shift=[]
     all_pred_intent_shift=[]
-    with open(os.path.join(data_source,"train_lack.pkl" if is_lack else "train.pkl"), "rb") as f:
+    with open(os.path.join(data_source,"train.pkl"), "rb") as f:
         all_sentence_embeddings = pickle.load(f)
     if p_u!=0:
         prex = torch.zeros((p_u, 768), device=device)
@@ -71,7 +71,7 @@ def train_epoch(model, train_loader, loss_intent_shift,loss_intent,loss_slots, o
         all_logits = torch.stack(all_logits, dim=0).to(slots_logits.device)  # shape: [N, slot_dim]
         all_labels = torch.tensor(all_labels).to(slots_logits.device)
         l = (
-            # h[0]*loss_intent_shift(intent_shift_logits.flatten(), intent_shift_true_label.float().flatten())+
+            h[0]*loss_intent_shift(intent_shift_logits.flatten(), intent_shift_true_label.float().flatten())+
             h[1]*loss_intent(intent_logits.view((-1, intent_logits.shape[-1])), intent_true_label.long().flatten())+
             h[2]*loss_slots(all_logits.view((-1,all_logits.shape[-1])), all_labels.long().flatten()))
         loss_sum += l.item()
@@ -99,14 +99,14 @@ def train_epoch(model, train_loader, loss_intent_shift,loss_intent,loss_slots, o
     return loss_sum / len(train_loader), all_true_intent_shift,all_pred_intent_shift,all_true_intent, all_pred_intent ,all_true_slots, all_pred_slots
 
 
-def eval(model, train_loader,loss_intent_shift, loss_intent, loss_slots, p_u, data_source, is_lack,h):
+def eval(model, train_loader,loss_intent_shift, loss_intent, loss_slots, p_u, data_source, h):
     model.eval()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     all_true_intent, all_pred_intent = [], []
     all_true_slots, all_pred_slots = [], []
     all_true_intent_shift = []
     all_pred_intent_shift = []
-    with open(os.path.join(data_source, "test_lack.pkl" if is_lack else "test.pkl"), "rb") as f:
+    with open(os.path.join(data_source, "test.pkl"), "rb") as f:
         all_sentence_embeddings = pickle.load(f)
     if p_u != 0:
         prex = torch.zeros((p_u, 768), device=device)
@@ -162,21 +162,17 @@ def eval(model, train_loader,loss_intent_shift, loss_intent, loss_slots, p_u, da
         train_loader), all_true_intent_shift, all_pred_intent_shift, all_true_intent, all_pred_intent, all_true_slots, all_pred_slots
 
 
-def train(model, train_loader, test_loader, optimizer, epoch, loss_intent_shift,loss_intent,loss_slots,p_u,data_source,is_lack,file,h,l):
+def train(model, train_loader, test_loader, optimizer, epoch, loss_intent_shift,loss_intent,loss_slots,p_u,data_source,file,h):
     for i in range(epoch):
-        l_train, tis_train,pis_train,ti_train, pi_train,ts_train,ps_train = train_epoch(model, train_loader,loss_intent_shift,loss_intent,loss_slots, optimizer,p_u,data_source,is_lack,h)
-        # before=model.state_dict().copy()
-        # before_metrix=model.tta.transition_matrix.cpu().tolist().copy()
-        # before_last_result=model.tta.last_result.cpu().tolist().copy()
-        l_test, tis_test,pis_test,ti_test, pi_test,ts_test, ps_test = eval(model, test_loader, loss_intent_shift,loss_intent,loss_slots,p_u,data_source,is_lack,h)
+        l_train, tis_train,pis_train,ti_train, pi_train,ts_train,ps_train = train_epoch(model, train_loader,loss_intent_shift,loss_intent,loss_slots, optimizer,p_u,data_source,h)
+        l_test, tis_test,pis_test,ti_test, pi_test,ts_test, ps_test = eval(model, test_loader, loss_intent_shift,loss_intent,loss_slots,p_u,data_source,h)
         print("epoch:", i + 1)
         print("train loss:", l_train)
-        # utills.get_metrics_intent_drift(tis_train,pis_train,True,file)
-        # utills.get_metrics_intent(ti_train, pi_train,True,file)
-        # utills.get_metrics_slots(ts_train,ps_train,True,file)
+        utills.get_metrics_intent_drift(tis_train,pis_train,True,file)
+        utills.get_metrics_intent(ti_train, pi_train,True,file)
+        utills.get_metrics_slots(ts_train,ps_train,True,file)
         print("test loss:", l_test)
-        if utills.get_metrics_intent_drift(tis_test,pis_test,False,file,i):
-            pass
+        utills.get_metrics_intent_drift(tis_test,pis_test,False,file,i)
         utills.get_metrics_intent(ti_test, pi_test, False,file,i)
         utills.get_metrics_slots(ts_test, ps_test, False,file,i)
 def get_statistic_information(data_source):
@@ -206,38 +202,35 @@ def get_statistic_information(data_source):
             for j in range(i,len(slots_indexes)):
                 statistic_result[slots_indexes[i]+l_intent][slots_indexes[j]+l_intent]+=1
                 statistic_result[slots_indexes[j]+l_intent][slots_indexes[i]+l_intent]+=1
-    # print(statistic_result)
     return statistic_result
 if __name__ == '__main__':
-    model_name="bert-base-uncased"
-    with_TTA = True
-    without_G=False
-    is_lack=False
+    model_name="../pretrain_model/bert-base-uncased"
     max_len=128
     intent_shift_size=1
     p_u = 32
     l=0.2
-    for data_source in ["multiwoz"]:
-        intent_size=len(json.load(open(os.path.join("../data",data_source, "intent.json"),'r',encoding='utf-8')))
-        slots_size=len(json.load(open(os.path.join("../data",data_source, "slots.json"),'r',encoding='utf-8')))
-        from AGLCF-TTA import AdaptiveGlobalLocalContextFusionModelWithTTA
-        model = AdaptiveGlobalLocalContextFusionModelWithTTA(intent_shift_size, intent_size, slots_size, max_len,p_u,l)
-        h=(0.05,0.25,0.7)
-        print("current_method:",method)
-        from torch.optim import AdamW
-        optimizer=AdamW(model.parameters(), lr=1e-5)
-        from torch.utils.data import DataLoader
-        from dataloader import  MyDataset
-        from transformers import BertTokenizer
-        tokenizer = BertTokenizer.from_pretrained(f"../tokenizers/{model_name}")
-        train_iter=DataLoader(dataset=MyDataset(tokenizer,max_len,"../data"+data_source,True,is_lack,False),batch_size=32,shuffle=False)
-        test_iter=DataLoader(dataset=MyDataset(tokenizer,max_len,"../data"+data_source,False,is_lack,False),batch_size=32,shuffle=False)
-        loss_intent_shift=torch.nn.BCEWithLogitsLoss()
-        loss_intent=torch.nn.CrossEntropyLoss(label_smoothing=0.1)
-        loss_slots=torch.nn.CrossEntropyLoss(label_smoothing=0.1)
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model.to(device)
-        file = os.path.join("results", method, f"{data_source}")
-        train(model,train_iter,test_iter,optimizer,50,loss_intent_shift,loss_intent, loss_slots, p_u, data_source, is_lack,file,h,l)
+    method="AGLCF_TTA"
+    data_source="sim"
+    h=(0.05,0.25,0.7)
+    intent_size=len(json.load(open(os.path.join("../data",data_source, "intent.json"),'r',encoding='utf-8')))
+    slots_size=len(json.load(open(os.path.join("../data",data_source, "slots.json"),'r',encoding='utf-8')))
+    from AGLCF_TTA import AGLCF_TTA
+    model = AGLCF_TTA(intent_shift_size, intent_size, slots_size, max_len,p_u,l)
+    print("current_method:",method)
+    from torch.optim import AdamW
+    optimizer=AdamW(model.parameters(), lr=1e-5)
+    from torch.utils.data import DataLoader
+    from dataloader import  MyDataset
+    from transformers import BertTokenizer
+    tokenizer = BertTokenizer.from_pretrained(model_name)
+    train_iter=DataLoader(dataset=MyDataset(tokenizer,max_len,"../data"+data_source,True,False),batch_size=32,shuffle=False)
+    test_iter=DataLoader(dataset=MyDataset(tokenizer,max_len,"../data"+data_source,False,False),batch_size=32,shuffle=False)
+    loss_intent_shift=torch.nn.BCEWithLogitsLoss()
+    loss_intent=torch.nn.CrossEntropyLoss(label_smoothing=0.1)
+    loss_slots=torch.nn.CrossEntropyLoss(label_smoothing=0.1)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    file = os.path.join("results", method, f"{data_source}")
+    train(model,train_iter,test_iter,optimizer,100,loss_intent_shift,loss_intent, loss_slots, p_u, data_source,file,h)
                 
                 

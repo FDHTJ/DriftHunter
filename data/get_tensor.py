@@ -1,43 +1,41 @@
-from transformers import BertTokenizer, BertModel, AutoModel
+import argparse
+
+from transformers import AutoTokenizer, AutoModel
 import json
 import torch
-import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
 import tqdm
-import sklearn.metrics as sm
 import pickle
-device=torch.device('cuda:0')
-tokenizer_1=BertTokenizer.from_pretrained('../tokenizers/bert-base-uncased')
-model_1=AutoModel.from_pretrained('../model/pretrained_models/bert-base-uncased')
+parser = argparse.ArgumentParser("This is the file to get the embedding of the previous utterances")
+parser.add_argument("--model_path", default='../pretrain_model/bert-base-uncased', help="The path of the pretrained model",type=str)
+parser.add_argument("--input_file", default='sim/train.json', help="The input file to get tensor",type=str)
+parser.add_argument("--max_length", default=128, help="The max length of the tokens",type=int)
+args = parser.parse_args()
+device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
+tokenizer_1=AutoTokenizer.from_pretrained(args.model_path)
+model_1=AutoModel.from_pretrained(args.model_path)
 model_1.to(device)
 model_1.eval()
-def get_text_embedding(text):
+print("model path:",args.model_path)
+print("input file:",args.input_file)
+output_file=args.input_file.replace(".json",".pkl")
+print("output file:",output_file)
+def get_text_embedding(text,max_length):
     with torch.no_grad():
-        text=tokenizer_1(text,add_special_tokens=True,padding="max_length",truncation=True,return_tensors="pt",max_length=128)
+        text=tokenizer_1(text,add_special_tokens=True,padding="max_length",truncation=True,return_tensors="pt",max_length=max_length)
         for key,value in text.items():
             text[key]=value.to(device)
         output=model_1(**text).last_hidden_state[:,0,:]
     return output
 
-with open("atis/test_lack.json", "r", encoding="utf-8") as f:
+with open(args.input_file, "r", encoding="utf-8") as f:
     data=json.load(f)
     all_test_embedding=None
     for  i in tqdm.tqdm(data):
-        t=get_text_embedding(" ".join(i['text']))
+        t=get_text_embedding(" ".join(i['text']),args.max_length)
         if all_test_embedding is None:
             all_test_embedding=t
         else:
             all_test_embedding=torch.cat((all_test_embedding,t),dim=0)
-    with open("atis/test_lack.pkl", "wb") as f:
+    with open(output_file, "wb") as f:
         pickle.dump(all_test_embedding,f)
-with open("atis/test.json", "r", encoding="utf-8") as f:
-    data=json.load(f)
-    all_test_embedding=None
-    for  i in tqdm.tqdm(data):
-        t=get_text_embedding(" ".join(i['text']))
-        if all_test_embedding is None:
-            all_test_embedding=t
-        else:
-            all_test_embedding=torch.cat((all_test_embedding,t),dim=0)
-    with open("atis/test.pkl", "wb") as f:
-        pickle.dump(all_test_embedding,f)
+

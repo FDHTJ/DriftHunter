@@ -1,5 +1,7 @@
 # Intent Drift Detection in Continuous Conversation via Temporal Transition Accumulating(TTA)
-All the dataset we used can be obtain by follows：
+📂 Dataset and Preprocessing Instructions
+
+We use the following publicly available datasets in our experiments:
 
 [ATIS(Airline Travel Information System)](https://github.com/howl-anderson/ATIS_dataset/)
 
@@ -7,15 +9,29 @@ All the dataset we used can be obtain by follows：
 
 [Multiwoz(Multi-Domain Wizard-of-Oz Datase)](https://github.com/budzianowski/multiwoz/tree/master/data/MultiWOZ_2.2)
 
-Because the processed Multiwoz is too large to upload, so we only keep the processed ATIS and SIM for our training and testing.
+Due to the large size of the processed MultiWOZ dataset, we only include the preprocessed versions of ATIS and SIM in our repository. However, we provide the necessary scripts to preprocess all datasets, including MultiWOZ.
 
-But we provide the code to process the data in /data/process_data.py, before you try  to get the processed data, merge all the dialogues in the orignal dataset is recommended.
+The preprocessing script is located at:
 
-The details of data process is represented in the /data/README.md.
+```
+/data/process_data.py
+```
+📌 Before running the script, we recommend merging all dialogues from the original datasets into a single file for each dataset.
+
+Detailed preprocessing instructions can be found in:
+```
+/data/README.md
+```
+Once the data is prepared, you can run the training and evaluation pipeline using:
+
+```
+/train/train_and_eval_with_tta.py
+```
 
 The hyperparemeters of α, β, and γ are as follows：
 
 Table: Hyperparameter on ATIS：
+
 | Method             | α    | β    | γ    |
 | ----------------- | ---- | ---- | ---- |
 | BERT-TTA          | 0.05 | 0.15 | 0.80 |
@@ -24,6 +40,7 @@ Table: Hyperparameter on ATIS：
 | DHLG-TTA          | 0.10 | 0.20 | 0.70 |
 
 Table: Hyperparameter on SIM：
+
 | Method             | α    | β    | γ    |
 | ----------------- | ---- | ---- | ---- |
 | BERT-TTA          | 0.05 | 0.15 | 0.80 |
@@ -32,6 +49,7 @@ Table: Hyperparameter on SIM：
 | DHLG-TTA          | 0.10 | 0.30 | 0.60 |
 
 Table: Hyperparameter on Multiwoz：
+
 | Method             | α    | β    | γ    |
 | ----------------- | ---- | ---- | ---- |
 | BERT-TTA          | 0.05 | 0.15 | 0.80 |

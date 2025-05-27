@@ -5,7 +5,7 @@ import pickle
 import os
 import tqdm
 class MyDataset(Dataset):
-    def __init__(self,tokenizer,max_len,data_source,is_train,is_lack,is_original=True):
+    def __init__(self,tokenizer,max_len,data_source,is_train,is_lack,is_original=False):
         super(MyDataset,self).__init__()
         data_file="train" if is_train else "test"
         data_file+=("_original" if is_original else "")
@@ -74,13 +74,3 @@ class MyDataset(Dataset):
         return self.data[item]
     def __len__(self):
         return len(self.data)
-# if __name__=="__main__":
-#     from transformers import AutoTokenizer
-#     tokenizer=AutoTokenizer.from_pretrained("../tokenizers/bert-base-uncased")
-#     data_iter=DataLoader(dataset=MyDataset(tokenizer,128,"atis",True,True),shuffle=False,batch_size=32)
-#     data_iter1=DataLoader(dataset=MyDataset(tokenizer,128,"atis",False,True),shuffle=False,batch_size=32)
-#     # data_iter2 = DataLoader(dataset=MyDataset(tokenizer, 128, "multiwoz", True, True), shuffle=False, batch_size=32)
-#     # data_iter3 = DataLoader(dataset=MyDataset(tokenizer, 128, "multiwoz", False, True), shuffle=False, batch_size=32)
-#     # for i in data_iter:
-#     #     print(i)
-#     #     break

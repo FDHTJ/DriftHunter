@@ -41,7 +41,7 @@ def train_epoch(model, train_loader, loss_intent_shift,loss_intent,loss_slots, o
     all_true_slots, all_pred_slots = [], []
     all_true_intent_shift=[]
     all_pred_intent_shift=[]
-    with open(os.path.join(data_source,"train.pkl"), "rb") as f:
+    with open(os.path.join("../data",data_source,"train.pkl"), "rb") as f:
         all_sentence_embeddings = pickle.load(f)
     if p_u!=0:
         prex = torch.zeros((p_u, 768), device=device)
@@ -106,7 +106,7 @@ def eval(model, train_loader,loss_intent_shift, loss_intent, loss_slots, p_u, da
     all_true_slots, all_pred_slots = [], []
     all_true_intent_shift = []
     all_pred_intent_shift = []
-    with open(os.path.join(data_source, "test.pkl"), "rb") as f:
+    with open(os.path.join("../data",data_source, "test.pkl"), "rb") as f:
         all_sentence_embeddings = pickle.load(f)
     if p_u != 0:
         prex = torch.zeros((p_u, 768), device=device)
@@ -168,9 +168,9 @@ def train(model, train_loader, test_loader, optimizer, epoch, loss_intent_shift,
         l_test, tis_test,pis_test,ti_test, pi_test,ts_test, ps_test = eval(model, test_loader, loss_intent_shift,loss_intent,loss_slots,p_u,data_source,h)
         print("epoch:", i + 1)
         print("train loss:", l_train)
-        utills.get_metrics_intent_drift(tis_train,pis_train,True,file)
-        utills.get_metrics_intent(ti_train, pi_train,True,file)
-        utills.get_metrics_slots(ts_train,ps_train,True,file)
+        utills.get_metrics_intent_drift(tis_train,pis_train,True,file,i)
+        utills.get_metrics_intent(ti_train, pi_train,True,file,i)
+        utills.get_metrics_slots(ts_train,ps_train,True,file,i)
         print("test loss:", l_test)
         utills.get_metrics_intent_drift(tis_test,pis_test,False,file,i)
         utills.get_metrics_intent(ti_test, pi_test, False,file,i)
@@ -207,7 +207,7 @@ if __name__ == '__main__':
     model_name="../pretrain_model/bert-base-uncased"
     max_len=128
     intent_shift_size=1
-    p_u = 32
+    p_u = 16
     l=0.2
     method="AGLCF_TTA"
     data_source="sim"
@@ -215,7 +215,7 @@ if __name__ == '__main__':
     intent_size=len(json.load(open(os.path.join("../data",data_source, "intent.json"),'r',encoding='utf-8')))
     slots_size=len(json.load(open(os.path.join("../data",data_source, "slots.json"),'r',encoding='utf-8')))
     from AGLCF_TTA import AGLCF_TTA
-    model = AGLCF_TTA(intent_shift_size, intent_size, slots_size, max_len,p_u,l)
+    model = AGLCF_TTA(intent_shift_size, intent_size, slots_size, max_len,p_u,l,pretrained_model=model_name)
     print("current_method:",method)
     from torch.optim import AdamW
     optimizer=AdamW(model.parameters(), lr=1e-5)
@@ -223,8 +223,8 @@ if __name__ == '__main__':
     from dataloader import  MyDataset
     from transformers import BertTokenizer
     tokenizer = BertTokenizer.from_pretrained(model_name)
-    train_iter=DataLoader(dataset=MyDataset(tokenizer,max_len,"../data"+data_source,True,False),batch_size=32,shuffle=False)
-    test_iter=DataLoader(dataset=MyDataset(tokenizer,max_len,"../data"+data_source,False,False),batch_size=32,shuffle=False)
+    train_iter=DataLoader(dataset=MyDataset(tokenizer,max_len,"../data/"+data_source,True,False),batch_size=32,shuffle=False)
+    test_iter=DataLoader(dataset=MyDataset(tokenizer,max_len,"../data/"+data_source,False,False),batch_size=32,shuffle=False)
     loss_intent_shift=torch.nn.BCEWithLogitsLoss()
     loss_intent=torch.nn.CrossEntropyLoss(label_smoothing=0.1)
     loss_slots=torch.nn.CrossEntropyLoss(label_smoothing=0.1)

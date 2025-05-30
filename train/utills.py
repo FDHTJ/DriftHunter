@@ -15,7 +15,7 @@ def save_result(file,current_result,epoch):
             json.dump(current_result,f,indent=4,ensure_ascii=False)
 def get_metrics_intent_drift(true_label,pred,is_train,folder,epoch):
     if is_train:
-        print("intent drift"
+        print("intent drift "
               "train set：")
     else:
         print("intent drift"
@@ -35,10 +35,10 @@ def get_metrics_intent_drift(true_label,pred,is_train,folder,epoch):
         save_result(file,metrics_dict,epoch)
 def get_metrics_slots(true_label,pred,is_train,folder,epoch):
     if is_train:
-        print("slots"
+        print("slots "
               "train set：")
     else:
-        print("slots"
+        print("slots "
               "test set：")
     metrics_dict = {
         "Accuracy": sm.accuracy_score(true_label, pred),
@@ -55,10 +55,10 @@ def get_metrics_slots(true_label,pred,is_train,folder,epoch):
         save_result(file,metrics_dict,epoch)
 def get_metrics_intent(true_label,pred,is_train,folder,epoch):
     if is_train:
-        print("intent"
+        print("intent "
               "train set：")
     else:
-        print("intent"
+        print("intent "
               "test set：")
     metrics_dict = {
         "Accuracy": sm.accuracy_score(true_label, pred),

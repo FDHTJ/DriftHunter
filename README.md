@@ -44,8 +44,8 @@ The optimal values of hyperparameters α, β, and γ are set individually for ea
 
 | Method            | α    | β    | γ    |
 | ----------------- | ---- | ---- | ---- |
-| BERT-TTA          | 0.05 | 0.15 | 0.80 |
-| RNNContextual-TTA | 0.05 | 0.25 | 0.70 |
+| BERT-DH          | 0.05 | 0.15 | 0.80 |
+| RNNContextual-DH | 0.05 | 0.25 | 0.70 |
 | AGLCF-TTA         | 0.05 | 0.25 | 0.70 |
 | DHLG-TTA          | 0.10 | 0.20 | 0.70 |
 

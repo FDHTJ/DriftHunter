@@ -2,7 +2,7 @@ import os
 import torch
 import torch.nn as nn
 from transformers import BertModel
-from TTA import FinalDecoder, TTA
+from DriftHunter import FinalDecoder, DriftHunter
 
 
 class MultiHeadAttention(nn.Module):
@@ -71,7 +71,7 @@ class DenseResult(nn.Module):
         x=self.fn1(x)
         x=self.fn2(x)
         return x
-class  AGLCF_TTA(nn.Module):
+class  AGLCF_DriftHunter(nn.Module):
     def __init__(self,
                  intent_shift_size,
                  intent_size,
@@ -85,18 +85,18 @@ class  AGLCF_TTA(nn.Module):
                  n_head=8,
                  bias=True,
                  pretrained_model="bert-base-uncased",):
-        super(AGLCF_TTA,self).__init__()
+        super(AGLCF_DriftHunter,self).__init__()
         self.bert=BertModel.from_pretrained(pretrained_model)
         self.globalLocal_multi_head_attention=GlobalLocalMultiHeadAttention(l_u=l_u,d_self=d_self,d_ref_bert=d_ref_bert,n_head=n_head,bias=bias)
         self.intent_bi_lstm=nn.LSTM(input_size=(d_self+d_ref_bert),hidden_size=hidden_size,bidirectional=True)
         self.slots_bi_lstm=nn.LSTM(input_size=(d_self+d_ref_bert),hidden_size=hidden_size,bidirectional=True)
         self.final_decoder=FinalDecoder(hidden_size*2,hidden_size*2,max_len,intent_shift_size,intent_size,slots_size)
-        self.tta=TTA(hidden_size*2, d_ref_bert,intent_size, slots_size,l)
+        self.dh=DriftHunter(hidden_size*2, d_ref_bert,intent_size, slots_size,l)
     def forward(self,d,u):
         p=self.bert(d["text"],d["attention_masks"]).last_hidden_state
         p_context=self.globalLocal_multi_head_attention(p,u)
         intent_embedding, (_, _) = self.intent_bi_lstm(p_context)
         slot_embedding, (_, _) = self.slots_bi_lstm(p_context)
-        intent_embedding,slot_embedding=self.tta(intent_embedding,slot_embedding,u)
+        intent_embedding,slot_embedding=self.dh(intent_embedding,slot_embedding,u)
         intent_shift_result,intent_result, slots_result=self.final_decoder(intent_embedding,slot_embedding)
         return intent_shift_result,intent_result,slots_result

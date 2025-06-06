@@ -31,7 +31,7 @@ def get_metrics_intent_drift(true_label,pred,is_train,folder,epoch):
     print("Recall :", sm.recall_score(true_label, pred))
     print("F1 :", sm.f1_score(true_label, pred))
     if not is_train:
-        file=os.path.join(folder,"intent_drift_with_tta.json")
+        file=os.path.join(folder,"intent_drift_with_DriftHunter.json")
         save_result(file,metrics_dict,epoch)
 def get_metrics_slots(true_label,pred,is_train,folder,epoch):
     if is_train:
@@ -51,7 +51,7 @@ def get_metrics_slots(true_label,pred,is_train,folder,epoch):
     print("Recall :", sm.recall_score(true_label, pred,average='macro',zero_division=0))
     print("F1 :", sm.f1_score(true_label, pred,average='macro',zero_division=0))
     if not is_train:
-        file=os.path.join(folder,"slots_with_tta.json")
+        file=os.path.join(folder,"slots_with_DriftHunter.json")
         save_result(file,metrics_dict,epoch)
 def get_metrics_intent(true_label,pred,is_train,folder,epoch):
     if is_train:
@@ -71,5 +71,5 @@ def get_metrics_intent(true_label,pred,is_train,folder,epoch):
     print("Recall :", sm.recall_score(true_label, pred,average='macro',zero_division=0))
     print("F1 :", sm.f1_score(true_label, pred,average='macro',zero_division=0))
     if not is_train:
-        file=os.path.join(folder,"intent_with_tta.json")
+        file=os.path.join(folder,"intent_with_DriftHunter.json")
         save_result(file,metrics_dict,epoch)

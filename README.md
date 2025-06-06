@@ -1,4 +1,5 @@
-# Intent Drift Detection in Continuous Conversation via Temporal Transition Accumulating(TTA)
+# Detecting Intent Drift in Continuous Conversation via Temporal Transition Accumulation
+
 📂 Dataset and Preprocessing Instructions
 
 We use the following publicly available datasets in our experiments:
@@ -25,12 +26,12 @@ Detailed preprocessing instructions can be found in:
 Once the data is prepared, you can run the training and evaluation pipeline using:
 
 ```
-/train/train_and_eval_with_tta.py
+/train/train_and_eval_with_DriftHunter.py
 ```
 
 And the result on SIM test set will be saved into:
 ```
-/train/results/AGLCF_TTA/sim
+/train/results/AGLCF_DriftHunter/sim
 ```
 
 ---
@@ -43,27 +44,27 @@ The optimal values of hyperparameters α, β, and γ are set individually for ea
 
 | Method            | α    | β    | γ    |
 | ----------------- | ---- | ---- | ---- |
-| BERT-TTA          | 0.05 | 0.15 | 0.80 |
-| RNNContextual-TTA | 0.05 | 0.25 | 0.70 |
-| AGLCF-TTA         | 0.05 | 0.25 | 0.70 |
-| DHLG-TTA          | 0.10 | 0.20 | 0.70 |
+| BERT-DH          | 0.05 | 0.15 | 0.80 |
+| RNNContextual-DH | 0.05 | 0.25 | 0.70 |
+| AGLCF-DH         | 0.05 | 0.25 | 0.70 |
+| DHLG-DH          | 0.10 | 0.20 | 0.70 |
 
 #### 📗 SIM Dataset
 
 | Method            | α    | β    | γ    |
 | ----------------- | ---- | ---- | ---- |
-| BERT-TTA          | 0.05 | 0.15 | 0.80 |
-| RNNContextual-TTA | 0.05 | 0.25 | 0.70 |
-| AGLCF-TTA         | 0.05 | 0.25 | 0.70 |
-| DHLG-TTA          | 0.10 | 0.30 | 0.60 |
+| BERT-DH          | 0.05 | 0.15 | 0.80 |
+| RNNContextual-DH | 0.05 | 0.25 | 0.70 |
+| AGLCF-DH         | 0.05 | 0.25 | 0.70 |
+| DHLG-DH          | 0.10 | 0.30 | 0.60 |
 
 #### 📙 MultiWOZ Dataset
 
 | Method            | α    | β    | γ    |
 | ----------------- | ---- | ---- | ---- |
-| BERT-TTA          | 0.05 | 0.15 | 0.80 |
-| RNNContextual-TTA | 0.25 | 0.25 | 0.50 |
-| AGLCF-TTA         | 0.05 | 0.35 | 0.60 |
-| DHLG-TTA          | 0.05 | 0.35 | 0.60 |
+| BERT-DH          | 0.05 | 0.15 | 0.80 |
+| RNNContextual-DH | 0.25 | 0.25 | 0.50 |
+| AGLCF-DH         | 0.05 | 0.35 | 0.60 |
+| DHLG-DH          | 0.05 | 0.35 | 0.60 |
 
 ---

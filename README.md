@@ -1,4 +1,5 @@
-# Intent Drift Detection in Continuous Conversation via Temporal Transition Accumulating(TTA)
+# Detecting Intent Drift in Continuous Conversation via Temporal Transition Accumulation
+
 📂 Dataset and Preprocessing Instructions
 
 We use the following publicly available datasets in our experiments:
